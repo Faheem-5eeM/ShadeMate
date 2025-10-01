@@ -1,10 +1,10 @@
 import './App.css';
 import React, { useState, useCallback, useEffect, useRef } from 'react';
-
+import SplashCursor from './components/SplashCursor.jsx'; // ✅ STEP 1: IMPORT ADDED HERE
 
 // Helper component for the loading spinner
 const Spinner = () => (
-    <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+    <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w.org/2000/svg" fill="none" viewBox="0 0 24 24">
         <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
         <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
     </svg>
@@ -92,92 +92,92 @@ const App = () => {
     // --- Event Handlers ---
 
     const handleSubmit = async (event) => {
-    event.preventDefault();
-    setError('');
-    setResult(null);
-    setIsLoading(true);
+        event.preventDefault();
+        setError('');
+        setResult(null);
+        setIsLoading(true);
 
-    let finalFromCoords = fromCoords;
-    let finalToCoords = toCoords;
-    
-    if (!finalFromCoords) finalFromCoords = await geocodePlace(fromLocation);
-    if (!finalToCoords) finalToCoords = await geocodePlace(toLocation);
-
-    if (!finalFromCoords) { 
-        setError(`Could not find location: "${fromLocation}". Please select from suggestions.`); 
-        setIsLoading(false); 
-        return; 
-    }
-    if (!finalToCoords) { 
-        setError(`Could not find location: "${toLocation}". Please select from suggestions.`); 
-        setIsLoading(false); 
-        return; 
-    }
-    if (fromLocation === toLocation) { 
-        setError("Your 'From' and 'To' locations cannot be the same."); 
-        setIsLoading(false); 
-        return; 
-    }
-
-    const routeInfo = await getRouteInfo(
-        finalFromCoords.lat, finalFromCoords.lon, 
-        finalToCoords.lat, finalToCoords.lon
-    );
-    if (!routeInfo) { 
-        setError("Could not calculate the travel route. Please try different locations."); 
-        setIsLoading(false); 
-        return; 
-    }
-    
-    const distanceKm = routeInfo.distance / 1000;
-    const travelMilliseconds = routeInfo.duration * 1000;
-    const bearing = getBearing(
-        finalFromCoords.lat, finalFromCoords.lon, 
-        finalToCoords.lat, finalToCoords.lon
-    );
-
-    const currentTime = new Date();
-    const currentHour = currentTime.getHours();
-    const arrivalTime = new Date(currentTime.getTime() + travelMilliseconds);
-
-    const isMorning = currentHour >= 4 && currentHour < 12;
-    const isAfternoon = currentHour >= 12 && currentHour < 19;
-    const isNight = !isMorning && !isAfternoon;
-
-    let side, explanation;
-
-    if (isNight) {
-        side = "Either";
-        explanation = "It's currently night time, so you can sit anywhere comfortably!";
-    } 
-    else if ((bearing > 315 || bearing <= 45) || (bearing > 135 && bearing <= 225)) {
-        // North-South direction
-        const isHeadingNorth = (bearing > 315 || bearing <= 45);
-        side = isMorning 
-            ? (isHeadingNorth ? "Left" : "Right") 
-            : (isHeadingNorth ? "Right" : "Left");
+        let finalFromCoords = fromCoords;
+        let finalToCoords = toCoords;
         
-        explanation = `You're heading generally ${isHeadingNorth ? 'North' : 'South'}. In the ${isMorning ? 'morning' : 'afternoon'}, the sun is in the ${isMorning ? 'east' : 'west'}, so the ${side.toLowerCase()} side will be shadier.`;
-    } 
-    else {
-        // East-West direction
-        const isHeadingEast = bearing > 45 && bearing <= 135;
-        if (isMorning) {
-            side = isHeadingEast ? "Either" : "Both";
-            explanation = isHeadingEast 
-                ? "The sun will be mostly behind you. Both sides should be comfortable." 
-                : "The sun will be mostly in front of you. Both sides will get some light.";
-        } else {
-            side = isHeadingEast ? "Both" : "Either";
-            explanation = isHeadingEast 
-                ? "The sun will be mostly in front of you. Both sides will get some light." 
-                : "The sun will be mostly behind you. Both sides should be comfortable.";
-        }
-    }
+        if (!finalFromCoords) finalFromCoords = await geocodePlace(fromLocation);
+        if (!finalToCoords) finalToCoords = await geocodePlace(toLocation);
 
-    setResult({ side, explanation, currentTime, arrivalTime, distance: distanceKm });
-    setIsLoading(false);
-};
+        if (!finalFromCoords) { 
+            setError(`Could not find location: "${fromLocation}". Please select from suggestions.`); 
+            setIsLoading(false); 
+            return; 
+        }
+        if (!finalToCoords) { 
+            setError(`Could not find location: "${toLocation}". Please select from suggestions.`); 
+            setIsLoading(false); 
+            return; 
+        }
+        if (fromLocation === toLocation) { 
+            setError("Your 'From' and 'To' locations cannot be the same."); 
+            setIsLoading(false); 
+            return; 
+        }
+
+        const routeInfo = await getRouteInfo(
+            finalFromCoords.lat, finalFromCoords.lon, 
+            finalToCoords.lat, finalToCoords.lon
+        );
+        if (!routeInfo) { 
+            setError("Could not calculate the travel route. Please try different locations."); 
+            setIsLoading(false); 
+            return; 
+        }
+        
+        const distanceKm = routeInfo.distance / 1000;
+        const travelMilliseconds = routeInfo.duration * 1000;
+        const bearing = getBearing(
+            finalFromCoords.lat, finalFromCoords.lon, 
+            finalToCoords.lat, finalToCoords.lon
+        );
+
+        const currentTime = new Date();
+        const currentHour = currentTime.getHours();
+        const arrivalTime = new Date(currentTime.getTime() + travelMilliseconds);
+
+        const isMorning = currentHour >= 4 && currentHour < 12;
+        const isAfternoon = currentHour >= 12 && currentHour < 19;
+        const isNight = !isMorning && !isAfternoon;
+
+        let side, explanation;
+
+        if (isNight) {
+            side = "Either";
+            explanation = "It's currently night time, so you can sit anywhere comfortably!";
+        } 
+        else if ((bearing > 315 || bearing <= 45) || (bearing > 135 && bearing <= 225)) {
+            // North-South direction
+            const isHeadingNorth = (bearing > 315 || bearing <= 45);
+            side = isMorning 
+                ? (isHeadingNorth ? "Left" : "Right") 
+                : (isHeadingNorth ? "Right" : "Left");
+            
+            explanation = `You're heading generally ${isHeadingNorth ? 'North' : 'South'}. In the ${isMorning ? 'morning' : 'afternoon'}, the sun is in the ${isMorning ? 'east' : 'west'}, so the ${side.toLowerCase()} side will be shadier.`;
+        } 
+        else {
+            // East-West direction
+            const isHeadingEast = bearing > 45 && bearing <= 135;
+            if (isMorning) {
+                side = isHeadingEast ? "Either" : "Both";
+                explanation = isHeadingEast 
+                    ? "The sun will be mostly behind you. Both sides should be comfortable." 
+                    : "The sun will be mostly in front of you. Both sides will get some light.";
+            } else {
+                side = isHeadingEast ? "Both" : "Either";
+                explanation = isHeadingEast 
+                    ? "The sun will be mostly in front of you. Both sides will get some light." 
+                    : "The sun will be mostly behind you. Both sides should be comfortable.";
+            }
+        }
+
+        setResult({ side, explanation, currentTime, arrivalTime, distance: distanceKm });
+        setIsLoading(false);
+    };
 
     useEffect(() => {
         const handleClickOutside = (event) => {
@@ -285,57 +285,48 @@ const App = () => {
                     </form>
                     
                     {result && (
-  <div
-    id="result-container"
-    className="mt-8 text-center transition-all duration-500"
-  >
-    <div className="relative inline-flex items-center justify-center w-32 h-32 my-4">
-      {/* Sun Icon opposite of seat */}
-      <div
-        className="absolute transition-all duration-500 ease-in-out z-10"
-        style={{
-          left: result.side === 'Left' ? 'auto' : '-2.5rem',
-          right: result.side === 'Left' ? '-2.5rem' : 'auto',
-          opacity: (result.side === 'Either' || result.side === 'Both') ? 0 : 1,
-        }}
-      >
-        <SunIcon />
-      </div>
-
-      {/* Seat */}
-      <img
-        src="seat.png"
-        alt="Recommended Seat"
-        className={`w-24 h-24 transition-transform duration-500 ${result.side === 'Right' ? 'flipped' : ''}`}
-        style={{
-          opacity: (result.side === 'Left' || result.side === 'Right') ? 1 : 0.3,
-        }}
-      />
-    </div>
-
-    <h2 className="text-2xl font-bold text-indigo-600">
-      Sit on the <span id="result-side">{result.side}</span> Side
-    </h2>
-    <p className="text-slate-600 mt-2">{result.explanation}</p>
-
-    <div className="text-sm text-slate-500 mt-4 space-y-1 border-t pt-4">
-      <p>
-        Current Time:{" "}
-        <span className="font-medium text-slate-700">
-          {formatTime(result.currentTime)}
-        </span>
-      </p>
-      <p>
-        Est. Arrival:{" "}
-        <span className="font-medium text-slate-700">
-          {formatTime(result.arrivalTime)}
-        </span>{" "}
-        (~<span id="distance">{result.distance.toFixed(1)}</span> km)
-      </p>
-    </div>
-  </div>
-)}
-
+                        <div id="result-container" className="mt-8 text-center transition-all duration-500">
+                            <div className="relative inline-flex items-center justify-center w-32 h-32 my-4">
+                              <div
+                                className="absolute transition-all duration-500 ease-in-out z-10"
+                                style={{
+                                  left: result.side === 'Left' ? 'auto' : '-2.5rem',
+                                  right: result.side === 'Left' ? '-2.5rem' : 'auto',
+                                  opacity: (result.side === 'Either' || result.side === 'Both') ? 0 : 1,
+                                }}
+                              >
+                                <SunIcon />
+                              </div>
+                              <img
+                                src="seat.png"
+                                alt="Recommended Seat"
+                                className={`w-24 h-24 transition-transform duration-500 ${result.side === 'Right' ? 'flipped' : ''}`}
+                                style={{
+                                  opacity: (result.side === 'Left' || result.side === 'Right') ? 1 : 0.3,
+                                }}
+                              />
+                            </div>
+                            <h2 className="text-2xl font-bold text-indigo-600">
+                              Sit on the <span id="result-side">{result.side}</span> Side
+                            </h2>
+                            <p className="text-slate-600 mt-2">{result.explanation}</p>
+                            <div className="text-sm text-slate-500 mt-4 space-y-1 border-t pt-4">
+                              <p>
+                                Current Time:{" "}
+                                <span className="font-medium text-slate-700">
+                                  {formatTime(result.currentTime)}
+                                </span>
+                              </p>
+                              <p>
+                                Est. Arrival:{" "}
+                                <span className="font-medium text-slate-700">
+                                  {formatTime(result.arrivalTime)}
+                                </span>{" "}
+                                (~<span id="distance">{result.distance.toFixed(1)}</span> km)
+                              </p>
+                            </div>
+                        </div>
+                    )}
                     
                     {error && <div className="mt-4 text-center text-red-600 font-medium">{error}</div>}
 
@@ -344,11 +335,9 @@ const App = () => {
                     </p>
                 </div>
             </div>
+            <SplashCursor /> {/* ✅ STEP 2: COMPONENT TAG ADDED HERE */}
         </div>
     );
-
-    
 };
 
 export default App;
-
