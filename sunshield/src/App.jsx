@@ -248,37 +248,57 @@ const App = () => {
                     </form>
                     
                     {result && (
-                        <div id="result-container" className="mt-8 text-center opacity-0 transform scale-95 -translate-y-4 transition-all duration-500 visible">
-                            <div className="relative inline-flex items-center justify-center w-32 h-32 my-4">
-                                 <div
-                                    className="absolute transition-all duration-500 ease-in-out z-10"
-                                    style={{
-                                        left: result.side === 'Left' ? 'auto' : '-2rem',
-                                        right: result.side === 'Left' ? '-2rem' : 'auto',
-                                        opacity: (result.side === 'Either' || result.side === 'Both') ? 0 : 1,
-                                    }}
-                                 >
-                                    <SunIcon />
-                                </div>
-                                <img 
-                                    src="seat.png" 
-                                    alt="Recommended Seat" 
-                                    className={`w-24 h-24 transition-transform duration-500 ${result.side === 'Left' ? 'flipped' : ''}`}
-                                    style={{
-                                        opacity: (result.side === 'Left' || result.side === 'Right') ? 1 : 0.2,
-                                    }}
-                                />
-                            </div>
+  <div
+    id="result-container"
+    className="mt-8 text-center transition-all duration-500"
+  >
+    <div className="relative inline-flex items-center justify-center w-32 h-32 my-4">
+      {/* Sun Icon opposite of seat */}
+      <div
+        className="absolute transition-all duration-500 ease-in-out z-10"
+        style={{
+          left: result.side === 'Left' ? 'auto' : '-2.5rem',
+          right: result.side === 'Left' ? '-2.5rem' : 'auto',
+          opacity: (result.side === 'Either' || result.side === 'Both') ? 0 : 1,
+        }}
+      >
+        <SunIcon />
+      </div>
 
-                            <h2 className="text-2xl font-bold text-indigo-600">Sit on the <span id="result-side">{result.side}</span> Side</h2>
-                            <p className="text-slate-600 mt-2">{result.explanation}</p>
-                            
-                            <div className="text-sm text-slate-500 mt-4 space-y-1 border-t pt-4">
-                                <p>Current Time: <span className="font-medium text-slate-700">{formatTime(result.currentTime)}</span></p>
-                                <p>Est. Arrival: <span className="font-medium text-slate-700">{formatTime(result.arrivalTime)}</span> (~<span id="distance">{result.distance.toFixed(1)}</span> km)</p>
-                            </div>
-                        </div>
-                    )}
+      {/* Seat */}
+      <img
+        src="seat.png"
+        alt="Recommended Seat"
+        className={`w-24 h-24 transition-transform duration-500 ${result.side === 'Right' ? 'flipped' : ''}`}
+        style={{
+          opacity: (result.side === 'Left' || result.side === 'Right') ? 1 : 0.3,
+        }}
+      />
+    </div>
+
+    <h2 className="text-2xl font-bold text-indigo-600">
+      Sit on the <span id="result-side">{result.side}</span> Side
+    </h2>
+    <p className="text-slate-600 mt-2">{result.explanation}</p>
+
+    <div className="text-sm text-slate-500 mt-4 space-y-1 border-t pt-4">
+      <p>
+        Current Time:{" "}
+        <span className="font-medium text-slate-700">
+          {formatTime(result.currentTime)}
+        </span>
+      </p>
+      <p>
+        Est. Arrival:{" "}
+        <span className="font-medium text-slate-700">
+          {formatTime(result.arrivalTime)}
+        </span>{" "}
+        (~<span id="distance">{result.distance.toFixed(1)}</span> km)
+      </p>
+    </div>
+  </div>
+)}
+
                     
                     {error && <div className="mt-4 text-center text-red-600 font-medium">{error}</div>}
 

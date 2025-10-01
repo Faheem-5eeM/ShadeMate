@@ -1,11 +1,10 @@
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
-// This file no longer imports any CSS.
 import App from './App.jsx'
+import './index.css'   // ✅ import Tailwind and custom styles
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
     <App />
   </StrictMode>,
 )
-
