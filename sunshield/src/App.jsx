@@ -1,7 +1,7 @@
 import './App.css';
 import React, { useState, useCallback, useEffect, useRef } from 'react';
 import SplashCursor from './components/SplashCursor.jsx';
-import { useIsDesktop } from './hooks/useIsDesktop'; // ✅ 1. IMPORT THE NEW HOOK
+import { useIsDesktop } from './hooks/useIsDesktop';
 
 // Helper component for the loading spinner
 const Spinner = () => (
@@ -19,7 +19,7 @@ const SunIcon = () => (
 );
 
 const App = () => {
-    const isDesktop = useIsDesktop(); // ✅ 2. CALL THE HOOK TO CHECK SCREEN SIZE
+    const isDesktop = useIsDesktop();
 
     // --- State Management ---
     const [fromLocation, setFromLocation] = useState('');
@@ -338,8 +338,9 @@ const App = () => {
                     </p>
                 </div>
             </div>
-            {/* ✅ 3. CONDITIONALLY RENDER BASED ON SCREEN SIZE */}
-            {isDesktop && <SplashCursor />}
+
+            {/* ✅ THIS LINE IS CHANGED FOR LOW QUALITY SETTINGS */}
+            {isDesktop && <SplashCursor DYE_RESOLUTION={512} SIM_RESOLUTION={64} />}
         </div>
     );
 };
