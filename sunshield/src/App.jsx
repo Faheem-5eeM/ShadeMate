@@ -168,7 +168,7 @@ const App = () => {
             <div className="w-full max-w-md mx-auto p-6 md:p-8">
                 <div className="bg-white rounded-2xl shadow-lg p-8">
                     <div className="text-center">
-                        <h1 className="text-3xl font-bold text-slate-800">Sun Shield</h1>
+                        <h1 className="text-3xl font-bold text-slate-800">Shade Mate</h1>
                         <p className="text-slate-500 mt-2">Find the best bus seat to avoid sunlight anywhere in India.</p>
                     </div>
 
