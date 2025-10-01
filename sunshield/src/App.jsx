@@ -1,3 +1,4 @@
+import './App.css';
 import React, { useState, useCallback, useEffect, useRef } from 'react';
 
 // Helper component for the loading spinner
@@ -163,141 +164,132 @@ const App = () => {
     };
 
     return (
-        <>
-            <style>{`
-                body { font-family: 'Inter', sans-serif; }
-                #result-container.visible { opacity: 1; transform: scale(1) translateY(0); }
-                .suggestions-container { position: absolute; background-color: white; border: 1px solid #e2e8f0; border-top: none; z-index: 10; width: 100%; max-height: 200px; overflow-y: auto; border-bottom-left-radius: 0.5rem; border-bottom-right-radius: 0.5rem; box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1); }
-                .suggestion-item { padding: 0.75rem 1rem; cursor: pointer; }
-                .suggestion-item:hover { background-color: #f1f5f9; }
-                .flipped { transform: scaleX(-1); }
-            `}</style>
-            <div className="bg-slate-100 flex items-center justify-center min-h-screen">
-                <div className="w-full max-w-md mx-auto p-6 md:p-8">
-                    <div className="bg-white rounded-2xl shadow-lg p-8">
-                        <div className="text-center">
-                            <h1 className="text-3xl font-bold text-slate-800">Sun Shield</h1>
-                            <p className="text-slate-500 mt-2">Find the best bus seat to avoid sunlight anywhere in India.</p>
+        <div className="bg-slate-100 flex items-center justify-center min-h-screen">
+            <div className="w-full max-w-md mx-auto p-6 md:p-8">
+                <div className="bg-white rounded-2xl shadow-lg p-8">
+                    <div className="text-center">
+                        <h1 className="text-3xl font-bold text-slate-800">Sun Shield</h1>
+                        <p className="text-slate-500 mt-2">Find the best bus seat to avoid sunlight anywhere in India.</p>
+                    </div>
+
+                    <form onSubmit={handleSubmit} className="mt-8 space-y-6">
+                        <div className="relative" ref={fromRef}>
+                            <label htmlFor="from-location" className="text-sm font-medium text-slate-700">From</label>
+                            <input
+                                type="text"
+                                id="from-location"
+                                className="mt-1 block w-full px-4 py-3 bg-slate-50 border border-slate-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                                placeholder="e.g., Pumpwell, Mangalore"
+                                required
+                                autoComplete="off"
+                                value={fromLocation}
+                                onChange={(e) => {
+                                    setFromLocation(e.target.value);
+                                    setFromCoords(null);
+                                    debouncedAutocomplete(e.target.value, setFromSuggestions);
+                                }}
+                            />
+                            {fromSuggestions.length > 0 && (
+                                <div className="suggestions-container">
+                                    {fromSuggestions.map((s) => (
+                                        <div
+                                            key={s.place_id}
+                                            className="suggestion-item"
+                                            onClick={() => {
+                                                setFromLocation(s.display_name);
+                                                setFromCoords({ lat: parseFloat(s.lat), lon: parseFloat(s.lon) });
+                                                setFromSuggestions([]);
+                                            }}
+                                        >
+                                            {s.display_name}
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
+                         <div className="relative" ref={toRef}>
+                            <label htmlFor="to-location" className="text-sm font-medium text-slate-700">To</label>
+                            <input
+                                type="text"
+                                id="to-location"
+                                className="mt-1 block w-full px-4 py-3 bg-slate-50 border border-slate-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                                placeholder="e.g., Deralakatte"
+                                required
+                                autoComplete="off"
+                                value={toLocation}
+                                onChange={(e) => {
+                                    setToLocation(e.target.value);
+                                    setToCoords(null);
+                                    debouncedAutocomplete(e.target.value, setToSuggestions);
+                                }}
+                            />
+                            {toSuggestions.length > 0 && (
+                                <div className="suggestions-container">
+                                    {toSuggestions.map((s) => (
+                                        <div
+                                            key={s.place_id}
+                                            className="suggestion-item"
+                                            onClick={() => {
+                                                setToLocation(s.display_name);
+                                                setToCoords({ lat: parseFloat(s.lat), lon: parseFloat(s.lon) });
+                                                setToSuggestions([]);
+                                            }}
+                                        >
+                                            {s.display_name}
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
                         </div>
 
-                        <form onSubmit={handleSubmit} className="mt-8 space-y-6">
-                            <div className="relative" ref={fromRef}>
-                                <label htmlFor="from-location" className="text-sm font-medium text-slate-700">From</label>
-                                <input
-                                    type="text"
-                                    id="from-location"
-                                    className="mt-1 block w-full px-4 py-3 bg-slate-50 border border-slate-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
-                                    placeholder="e.g., Pumpwell, Mangalore"
-                                    required
-                                    autoComplete="off"
-                                    value={fromLocation}
-                                    onChange={(e) => {
-                                        setFromLocation(e.target.value);
-                                        setFromCoords(null);
-                                        debouncedAutocomplete(e.target.value, setFromSuggestions);
+                        <button type="submit" disabled={isLoading} className="w-full bg-indigo-600 text-white font-bold py-3 px-4 rounded-lg hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-transform transform hover:scale-105 shadow-md flex items-center justify-center">
+                            {isLoading ? <Spinner /> : <span>Find My Seat</span>}
+                        </button>
+                    </form>
+                    
+                    {result && (
+                        <div id="result-container" className="mt-8 text-center opacity-0 transform scale-95 -translate-y-4 transition-all duration-500 visible">
+                            <div className="relative inline-flex items-center justify-center w-32 h-32 my-4">
+                                 <div
+                                    className="absolute transition-all duration-500 ease-in-out z-10"
+                                    style={{
+                                        left: result.side === 'Left' ? 'auto' : '-2rem',
+                                        right: result.side === 'Left' ? '-2rem' : 'auto',
+                                        opacity: (result.side === 'Either' || result.side === 'Both') ? 0 : 1,
+                                    }}
+                                 >
+                                    <SunIcon />
+                                </div>
+                                <img 
+                                    src="seat.png" 
+                                    alt="Recommended Seat" 
+                                    className={`w-24 h-24 transition-transform duration-500 ${result.side === 'Left' ? 'flipped' : ''}`}
+                                    style={{
+                                        opacity: (result.side === 'Left' || result.side === 'Right') ? 1 : 0.2,
                                     }}
                                 />
-                                {fromSuggestions.length > 0 && (
-                                    <div className="suggestions-container">
-                                        {fromSuggestions.map((s) => (
-                                            <div
-                                                key={s.place_id}
-                                                className="suggestion-item"
-                                                onClick={() => {
-                                                    setFromLocation(s.display_name);
-                                                    setFromCoords({ lat: parseFloat(s.lat), lon: parseFloat(s.lon) });
-                                                    setFromSuggestions([]);
-                                                }}
-                                            >
-                                                {s.display_name}
-                                            </div>
-                                        ))}
-                                    </div>
-                                )}
-                            </div>
-                             <div className="relative" ref={toRef}>
-                                <label htmlFor="to-location" className="text-sm font-medium text-slate-700">To</label>
-                                <input
-                                    type="text"
-                                    id="to-location"
-                                    className="mt-1 block w-full px-4 py-3 bg-slate-50 border border-slate-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
-                                    placeholder="e.g., Deralakatte"
-                                    required
-                                    autoComplete="off"
-                                    value={toLocation}
-                                    onChange={(e) => {
-                                        setToLocation(e.target.value);
-                                        setToCoords(null);
-                                        debouncedAutocomplete(e.target.value, setToSuggestions);
-                                    }}
-                                />
-                                {toSuggestions.length > 0 && (
-                                    <div className="suggestions-container">
-                                        {toSuggestions.map((s) => (
-                                            <div
-                                                key={s.place_id}
-                                                className="suggestion-item"
-                                                onClick={() => {
-                                                    setToLocation(s.display_name);
-                                                    setToCoords({ lat: parseFloat(s.lat), lon: parseFloat(s.lon) });
-                                                    setToSuggestions([]);
-                                                }}
-                                            >
-                                                {s.display_name}
-                                            </div>
-                                        ))}
-                                    </div>
-                                )}
                             </div>
 
-                            <button type="submit" disabled={isLoading} className="w-full bg-indigo-600 text-white font-bold py-3 px-4 rounded-lg hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-transform transform hover:scale-105 shadow-md flex items-center justify-center">
-                                {isLoading ? <Spinner /> : <span>Find My Seat</span>}
-                            </button>
-                        </form>
-                        
-                        {result && (
-                            <div id="result-container" className="mt-8 text-center opacity-0 transform scale-95 -translate-y-4 transition-all duration-500 visible">
-                                <div className="relative inline-flex items-center justify-center w-32 h-32 my-4">
-                                     <div
-                                        className="absolute transition-all duration-500 ease-in-out z-10"
-                                        style={{
-                                            left: result.side === 'Left' ? 'auto' : '-2rem',
-                                            right: result.side === 'Left' ? '-2rem' : 'auto',
-                                            opacity: (result.side === 'Either' || result.side === 'Both') ? 0 : 1,
-                                        }}
-                                     >
-                                        <SunIcon />
-                                    </div>
-                                    <img 
-                                        src="seat.png" 
-                                        alt="Recommended Seat" 
-                                        className={`w-24 h-24 transition-transform duration-500 ${result.side === 'Left' ? 'flipped' : ''}`}
-                                        style={{
-                                            opacity: (result.side === 'Left' || result.side === 'Right') ? 1 : 0.2,
-                                        }}
-                                    />
-                                </div>
-
-                                <h2 className="text-2xl font-bold text-indigo-600">Sit on the <span id="result-side">{result.side}</span> Side</h2>
-                                <p className="text-slate-600 mt-2">{result.explanation}</p>
-                                
-                                <div className="text-sm text-slate-500 mt-4 space-y-1 border-t pt-4">
-                                    <p>Current Time: <span className="font-medium text-slate-700">{formatTime(result.currentTime)}</span></p>
-                                    <p>Est. Arrival: <span className="font-medium text-slate-700">{formatTime(result.arrivalTime)}</span> (~<span id="distance">{result.distance.toFixed(1)}</span> km)</p>
-                                </div>
+                            <h2 className="text-2xl font-bold text-indigo-600">Sit on the <span id="result-side">{result.side}</span> Side</h2>
+                            <p className="text-slate-600 mt-2">{result.explanation}</p>
+                            
+                            <div className="text-sm text-slate-500 mt-4 space-y-1 border-t pt-4">
+                                <p>Current Time: <span className="font-medium text-slate-700">{formatTime(result.currentTime)}</span></p>
+                                <p>Est. Arrival: <span className="font-medium text-slate-700">{formatTime(result.arrivalTime)}</span> (~<span id="distance">{result.distance.toFixed(1)}</span> km)</p>
                             </div>
-                        )}
-                        
-                        {error && <div className="mt-4 text-center text-red-600 font-medium">{error}</div>}
+                        </div>
+                    )}
+                    
+                    {error && <div className="mt-4 text-center text-red-600 font-medium">{error}</div>}
 
-                        <p className="text-xs text-slate-400 text-center mt-8">
-                            Powered by OpenStreetMap. Results are a general recommendation.
-                        </p>
-                    </div>
+                    <p className="text-xs text-slate-400 text-center mt-8">
+                        Powered by OpenStreetMap. Results are a general recommendation.
+                    </p>
                 </div>
             </div>
-        </>
+        </div>
     );
 };
 
 export default App;
+
