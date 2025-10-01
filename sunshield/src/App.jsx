@@ -1,6 +1,7 @@
 import './App.css';
 import React, { useState, useCallback, useEffect, useRef } from 'react';
 
+
 // Helper component for the loading spinner
 const Spinner = () => (
     <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
@@ -91,57 +92,93 @@ const App = () => {
     // --- Event Handlers ---
 
     const handleSubmit = async (event) => {
-        event.preventDefault();
-        setError('');
-        setResult(null);
-        setIsLoading(true);
+    event.preventDefault();
+    setError('');
+    setResult(null);
+    setIsLoading(true);
 
-        let finalFromCoords = fromCoords;
-        let finalToCoords = toCoords;
-        
-        if (!finalFromCoords) finalFromCoords = await geocodePlace(fromLocation);
-        if (!finalToCoords) finalToCoords = await geocodePlace(toLocation);
-
-        if (!finalFromCoords) { setError(`Could not find location: "${fromLocation}". Please select from suggestions.`); setIsLoading(false); return; }
-        if (!finalToCoords) { setError(`Could not find location: "${toLocation}". Please select from suggestions.`); setIsLoading(false); return; }
-        if (fromLocation === toLocation) { setError("Your 'From' and 'To' locations cannot be the same."); setIsLoading(false); return; }
-
-        const routeInfo = await getRouteInfo(finalFromCoords.lat, finalFromCoords.lon, finalToCoords.lat, finalToCoords.lon);
-        if (!routeInfo) { setError("Could not calculate the travel route. Please try different locations."); setIsLoading(false); return; }
-        
-        const distanceKm = routeInfo.distance / 1000;
-        const travelMilliseconds = routeInfo.duration * 1000;
-        const bearing = getBearing(finalFromCoords.lat, finalFromCoords.lon, finalToCoords.lat, finalToCoords.lon);
-        const currentTime = new Date();
-        const currentHour = currentTime.getHours();
-        const arrivalTime = new Date(currentTime.getTime() + travelMilliseconds);
-        const isMorning = currentHour >= 4 && currentHour < 12;
-        const isAfternoon = currentHour >= 12 && currentHour < 19;
-        
-        let side, explanation;
-
-        if (!isMorning && !isAfternoon) {
-             side = "Either";
-             explanation = `It's currently dark outside, so you can sit on any side you prefer!`;
-        } else if ((bearing > 315 || bearing <= 45) || (bearing > 135 && bearing <= 225)) {
-            const isHeadingNorth = (bearing > 315 || bearing <= 45);
-            side = isMorning ? (isHeadingNorth ? "Left" : "Right") : (isHeadingNorth ? "Right" : "Left");
-            explanation = `You're heading generally ${isHeadingNorth ? 'North' : 'South'}. In the ${isMorning ? 'morning' : 'afternoon'}, the sun is in the ${isMorning ? 'east' : 'west'}, so the ${side.toLowerCase()} side will be shadier.`;
-        } else {
-            const isHeadingEast = bearing > 45 && bearing <= 135;
-            if(isMorning) {
-                side = isHeadingEast ? "Either" : "Both";
-                explanation = isHeadingEast ? "The sun will be mostly behind you. Both sides should be comfortable." : "The sun will be mostly in front of you. Both sides will get some light.";
-            } else {
-                side = isHeadingEast ? "Both" : "Either";
-                explanation = isHeadingEast ? "The sun will be mostly in front of you. Both sides will get some light." : "The sun will be mostly behind you. Both sides should be comfortable.";
-            }
-        }
-        
-        setResult({ side, explanation, currentTime, arrivalTime, distance: distanceKm });
-        setIsLoading(false);
-    };
+    let finalFromCoords = fromCoords;
+    let finalToCoords = toCoords;
     
+    if (!finalFromCoords) finalFromCoords = await geocodePlace(fromLocation);
+    if (!finalToCoords) finalToCoords = await geocodePlace(toLocation);
+
+    if (!finalFromCoords) { 
+        setError(`Could not find location: "${fromLocation}". Please select from suggestions.`); 
+        setIsLoading(false); 
+        return; 
+    }
+    if (!finalToCoords) { 
+        setError(`Could not find location: "${toLocation}". Please select from suggestions.`); 
+        setIsLoading(false); 
+        return; 
+    }
+    if (fromLocation === toLocation) { 
+        setError("Your 'From' and 'To' locations cannot be the same."); 
+        setIsLoading(false); 
+        return; 
+    }
+
+    const routeInfo = await getRouteInfo(
+        finalFromCoords.lat, finalFromCoords.lon, 
+        finalToCoords.lat, finalToCoords.lon
+    );
+    if (!routeInfo) { 
+        setError("Could not calculate the travel route. Please try different locations."); 
+        setIsLoading(false); 
+        return; 
+    }
+    
+    const distanceKm = routeInfo.distance / 1000;
+    const travelMilliseconds = routeInfo.duration * 1000;
+    const bearing = getBearing(
+        finalFromCoords.lat, finalFromCoords.lon, 
+        finalToCoords.lat, finalToCoords.lon
+    );
+
+    const currentTime = new Date();
+    const currentHour = currentTime.getHours();
+    const arrivalTime = new Date(currentTime.getTime() + travelMilliseconds);
+
+    const isMorning = currentHour >= 4 && currentHour < 12;
+    const isAfternoon = currentHour >= 12 && currentHour < 19;
+    const isNight = !isMorning && !isAfternoon;
+
+    let side, explanation;
+
+    if (isNight) {
+        side = "Either";
+        explanation = "It's currently night time, so you can sit anywhere comfortably!";
+    } 
+    else if ((bearing > 315 || bearing <= 45) || (bearing > 135 && bearing <= 225)) {
+        // North-South direction
+        const isHeadingNorth = (bearing > 315 || bearing <= 45);
+        side = isMorning 
+            ? (isHeadingNorth ? "Left" : "Right") 
+            : (isHeadingNorth ? "Right" : "Left");
+        
+        explanation = `You're heading generally ${isHeadingNorth ? 'North' : 'South'}. In the ${isMorning ? 'morning' : 'afternoon'}, the sun is in the ${isMorning ? 'east' : 'west'}, so the ${side.toLowerCase()} side will be shadier.`;
+    } 
+    else {
+        // East-West direction
+        const isHeadingEast = bearing > 45 && bearing <= 135;
+        if (isMorning) {
+            side = isHeadingEast ? "Either" : "Both";
+            explanation = isHeadingEast 
+                ? "The sun will be mostly behind you. Both sides should be comfortable." 
+                : "The sun will be mostly in front of you. Both sides will get some light.";
+        } else {
+            side = isHeadingEast ? "Both" : "Either";
+            explanation = isHeadingEast 
+                ? "The sun will be mostly in front of you. Both sides will get some light." 
+                : "The sun will be mostly behind you. Both sides should be comfortable.";
+        }
+    }
+
+    setResult({ side, explanation, currentTime, arrivalTime, distance: distanceKm });
+    setIsLoading(false);
+};
+
     useEffect(() => {
         const handleClickOutside = (event) => {
             if (fromRef.current && !fromRef.current.contains(event.target)) {
@@ -303,12 +340,14 @@ const App = () => {
                     {error && <div className="mt-4 text-center text-red-600 font-medium">{error}</div>}
 
                     <p className="text-xs text-slate-400 text-center mt-8">
-                        Powered by OpenStreetMap. Results are a general recommendation.
+                        © 2025 Shade Mate. All rights reserved.
                     </p>
                 </div>
             </div>
         </div>
     );
+
+    
 };
 
 export default App;
